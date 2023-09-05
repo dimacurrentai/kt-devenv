@@ -23,10 +23,11 @@ jobs:
         run: |
           ls -lasR example >/dev/null
           tar cf unused_code.tar example
+          echo "Hello, World!" > foo.txt
           docker run \
             --mount type=bind,source="$PWD",target=/home/dev/shared \
             -i "ghcr.io/${GHCR_USERNAME}/kt-devenv:latest" \
-            -c '(cd /home/dev/shared/example; ls -lasR; \
+            -c '(cd /home/dev/shared; ls -las unused_code.tar; ls -las foo.txt; cd /home/dev/shared/example; ls -lasR; \
                  echo -e "=== RUN ===\n"; r; echo -e "=== TEST ===\n"; t)'
                  #            -c '(tar xf shared/code.tar; ls -lasR example; \
                  #                 cd example; echo -e "=== RUN ===\n"; r; echo -e "=== TEST ===\n"; t)'
