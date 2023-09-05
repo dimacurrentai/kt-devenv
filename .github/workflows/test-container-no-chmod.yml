@@ -27,7 +27,14 @@ jobs:
           docker run \
             --mount type=bind,source="$PWD",target=/home/dev/shared \
             -i "ghcr.io/${GHCR_USERNAME}/kt-devenv:latest" \
-            -c '(cd /home/dev/shared; ls -las unused_code.tar; ls -las foo.txt; cd /home/dev/shared/example; ls -lasR; \
+            -c '(cd /home/dev/shared; ls -las unused_code.tar; ls -las foo.txt; \
+                 tar cf foo.txt.tar foo.txt; \
+                 echo "CHECKPOINT 1"; \
+                 mkdir test; mv foo.txt.tar test; cd test; \
+                 echo "CHECKPOINT 2"; \
+                 ls -las; tar xf foo.txt.tar; ls -las; cd ..; \
+                 echo "CHECKPOINT 3"; \
+                 cd /home/dev/shared/example; ls -lasR; \
                  echo -e "=== RUN ===\n"; r; echo -e "=== TEST ===\n"; t)'
                  #            -c '(tar xf shared/code.tar; ls -lasR example; \
                  #                 cd example; echo -e "=== RUN ===\n"; r; echo -e "=== TEST ===\n"; t)'
