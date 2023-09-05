@@ -1,0 +1,30 @@
+name: Test running tests from the container, no chmod
+
+on:
+  workflow_dispatch:
+
+env:
+  GHCR_USERNAME: ${{ github.actor }}
+
+jobs:
+  test-container-no-chmod:
+    name: Test running tests from the container, no chmod
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Clone the Repo
+        uses: actions/checkout@v3
+      - name: Pull the DevEnv
+        run: docker pull "ghcr.io/${GHCR_USERNAME}/kt-devenv:latest"
+      - name: Print DevEnv Version
+        run: docker run -i "ghcr.io/${GHCR_USERNAME}/kt-devenv:latest" -c v
+      - name: Run the Test
+        run: |
+          ls -lasR example
+          tar cf code.tar example
+          docker run \
+            --mount type=bind,source="$PWD",target=/home/dev/shared \
+            -i "ghcr.io/${GHCR_USERNAME}/kt-devenv:latest" \
+            -c '(tar xf shared/code.tar; ls -lasR example; \
+                 cd example; echo -e "=== RUN ===\n"; r; echo -e "=== TEST ===\n"; t)'
