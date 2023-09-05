@@ -21,10 +21,12 @@ jobs:
         run: docker run -i "ghcr.io/${GHCR_USERNAME}/kt-devenv:latest" -c v
       - name: Run the Test
         run: |
-          ls -lasR example
-          tar cf code.tar example
+          ls -lasR example >/dev/null
+          tar cf unused_code.tar example
           docker run \
             --mount type=bind,source="$PWD",target=/home/dev/shared \
             -i "ghcr.io/${GHCR_USERNAME}/kt-devenv:latest" \
-            -c '(tar xf shared/code.tar; ls -lasR example; \
-                 cd example; echo -e "=== RUN ===\n"; r; echo -e "=== TEST ===\n"; t)'
+            -c '(cd /home/dev/shared/example; ls -lasR; \
+                 echo -e "=== RUN ===\n"; r; echo -e "=== TEST ===\n"; t)'
+                 #            -c '(tar xf shared/code.tar; ls -lasR example; \
+                 #                 cd example; echo -e "=== RUN ===\n"; r; echo -e "=== TEST ===\n"; t)'
