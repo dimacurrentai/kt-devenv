@@ -1,0 +1,29 @@
+name: Test running tests from the container
+
+on:
+  workflow_dispatch:
+
+env:
+  GHCR_USERNAME: ${{ github.actor }}
+
+jobs:
+  test-container:
+    name: Test running tests from the container
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Clone the Repo
+        uses: actions/checkout@v3
+      - name: Pull the DevEnv
+        run: docker pull "ghcr.io/${GHCR_USERNAME}/kt-devenv:latest"
+      - name: Print DevEnv Version
+        run: docker run -i "ghcr.io/${GHCR_USERNAME}/kt-devenv:latest" -c v
+      - name: Run the Test
+        run: |
+          tar cf code.tar example
+          docker run \
+            --mount type=bind,source="$PWD",target=/home/dev/shared \
+            -i "ghcr.io/${GHCR_USERNAME}/kt-devenv:latest" \
+            -c '(tar xf shared/code.tar; chown -R dev: example; \
+                 cd example; echo -e "=== RUN ===\n"; r; echo -e "=== TEST ===\n"; t)'

@@ -1,0 +1,32 @@
+name: Build container and push it to GHCR
+
+on:
+  workflow_dispatch:
+
+env:
+  GHCR_USERNAME: ${{ github.actor }}
+  GHCR_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+  GIT_SHA: ${{ github.sha }}  # NOTE(dkorolev): This will not do what it should for PR-based action triggers!
+
+jobs:
+  push-to-ghcr:
+    name: Build container and push it to GHCR
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Clone the Repo
+        uses: actions/checkout@v3
+      - name: Build the DevEnv Container
+        run: |
+          (cd container; sed -i "s/__HERE_BE_DRAGONS__/${GIT_SHA:0:6}/" Dockerfile)
+          (cd container; cat Dockerfile)
+          (cd container; docker build -t "ghcr.io/${GHCR_USERNAME}/kt-devenv:${GIT_SHA:0:6}" .)
+      - name: Login to GHCR
+        run: echo "${GHCR_PASSWORD}" | docker login ghcr.io --username "${GHCR_USERNAME}" --password-stdin
+      - name: Push to GHCR
+        run: |
+          docker push "ghcr.io/${GHCR_USERNAME}/kt-devenv:${GIT_SHA:0:6}"
+          docker tag "ghcr.io/${GHCR_USERNAME}/kt-devenv:${GIT_SHA:0:6}" "ghcr.io/${GHCR_USERNAME}/kt-devenv:latest"
+          docker push "ghcr.io/${GHCR_USERNAME}/kt-devenv:latest"
+
